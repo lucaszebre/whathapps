@@ -7,14 +7,19 @@ import { Icons } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { zodResolver } from '@hookform/resolvers/zod';
 
+import z from  'zod'
+import { useForm } from "react-hook-form"
+interface FormData {
+  email: string;
+}
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
 
-  async function onSubmit(event: React.SyntheticEvent) {
-    event.preventDefault()
+  async function onSubmit() {
     setIsLoading(true)
 
     setTimeout(() => {
@@ -22,9 +27,16 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
     }, 3000)
   }
 
+  const schema = z.object({
+    email: z.string().email({ message: 'Invalid email format' }),
+    password1: z.string().min(1, { message: 'Required' }),
+    password2: z.string().min(1, { message: 'Required' }),
+});
+const { register, handleSubmit,watch, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) });
+
   return (
     <div className={cn("grid gap-6", className)} {...props}>
-      <form onSubmit={onSubmit}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <div className="grid gap-2">
           <div className="grid gap-1">
             <Label className="sr-only" htmlFor="email">
@@ -38,9 +50,12 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
               autoComplete="email"
               autoCorrect="off"
               disabled={isLoading}
+              {...register('email')}
+              style={errors.email ? { border: '#EC5757 1px solid' } : {}}
             />
+            {errors.email && <p className="text-red-600 font-normal ">{errors.email.message?.toString()}</p>}
           </div>
-          <Button disabled={isLoading}>
+          <Button className="rounded-md" variant="outline" disabled={isLoading}>
             {isLoading && (
               <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
             )}
@@ -58,7 +73,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
           </span>
         </div>
       </div>
-      <Button variant="outline" type="button" disabled={isLoading}>
+      <Button className="rounded-md" variant="outline" type="button" disabled={isLoading}>
         {isLoading ? (
           <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
         ) : (
@@ -66,7 +81,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
         )}{" "}
         Github
       </Button>
-      <Button variant="outline" type="button" disabled={isLoading}>
+      <Button className="rounded-md" variant="outline" type="button" disabled={isLoading}>
         {isLoading ? (
           <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
         ) : (
@@ -77,3 +92,8 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
     </div>
   )
 }
+
+
+
+
+
